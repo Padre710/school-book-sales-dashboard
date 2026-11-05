@@ -1,0 +1,1 @@
+Put the cost file here (see ../../docs/UPDATING.md). `book_costs_TEMPLATE.csv` lists every title and year with the usual selling price and copies sold, to help filling it. Cost files are ignored by git on purpose.

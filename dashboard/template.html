@@ -1,0 +1,285 @@
+<title>Book Sales Dashboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a sticky filter bar over a tabbed report; one idea per card, numbers first, a plain sentence under every chart.
+   Palette: deep spruce (accent), marigold (highlight), slate neutrals with a green bias. Type: serif for headings, system sans for numbers. */
+:root{--bg:#f3f5f2;--surface:#ffffff;--surface2:#e9eee9;--fg:#18221f;--muted:#5b6b66;--line:#d3dcd6;--accent:#0f5c52;--accent-fg:#ffffff;--mark:#d99a00;--good:#1f7a4d;--warn:#b8650a;--bad:#b3261e;
+--c1:#0f5c52;--c2:#d99a00;--c3:#5b4fa8;--c4:#c2552d;--c5:#2e86c1;--c6:#7a8f2b;--c7:#a23b72;--c8:#3d4f5c;--other:#9aa8a2;
+--t-school:#0f5c52;--t-book:#d99a00;--t-ind:#5b4fa8;--t-coord:#3d4f5c;--t-unk:#9aa8a2;
+--serif:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;--sans:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1715;--surface:#17211e;--surface2:#1f2c28;--fg:#e7eeea;--muted:#9fb0a9;--line:#2c3b36;--accent:#4fc2ae;--accent-fg:#06211c;--mark:#f0b429;--good:#58c78d;--warn:#f0a050;--bad:#ff8a80;
+--c1:#4fc2ae;--c2:#f0b429;--c3:#a99bff;--c4:#ff9a72;--c5:#6db8ee;--c6:#b6cc5a;--c7:#ee86bd;--c8:#9db4c4;--other:#6f817a;
+--t-school:#4fc2ae;--t-book:#f0b429;--t-ind:#a99bff;--t-coord:#9db4c4;--t-unk:#6f817a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1715;--surface:#17211e;--surface2:#1f2c28;--fg:#e7eeea;--muted:#9fb0a9;--line:#2c3b36;--accent:#4fc2ae;--accent-fg:#06211c;--mark:#f0b429;--good:#58c78d;--warn:#f0a050;--bad:#ff8a80;
+--c1:#4fc2ae;--c2:#f0b429;--c3:#a99bff;--c4:#ff9a72;--c5:#6db8ee;--c6:#b6cc5a;--c7:#ee86bd;--c8:#9db4c4;--other:#6f817a;
+--t-school:#4fc2ae;--t-book:#f0b429;--t-ind:#a99bff;--t-coord:#9db4c4;--t-unk:#6f817a;color-scheme:dark}
+*{box-sizing:border-box}html{color-scheme:light}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 var(--sans);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 40px}
+.wrap{max-width:1180px;margin:0 auto}
+header.top{padding:18px 0 6px;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;justify-content:space-between}
+h1{font:600 26px/1.15 var(--serif);margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);font-size:13px}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:8px 0;border-bottom:1px solid var(--line)}
+nav.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+nav.tabs button{flex:none;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:7px 13px;border-radius:999px;font:500 13px var(--sans);cursor:pointer}
+nav.tabs button[aria-current="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+nav.tabs button:focus-visible,.chip:focus-visible,select:focus-visible,.btn:focus-visible{outline:2px solid var(--mark);outline-offset:2px}
+.filters{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:13px;color:var(--muted)}
+.filters label{display:flex;gap:6px;align-items:center}
+select{background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:5px 8px;font:13px var(--sans)}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--muted);padding:4px 10px;border-radius:999px;font:500 12px var(--sans);cursor:pointer}
+.chip[aria-pressed="true"]{color:var(--fg);border-color:var(--fg);background:var(--surface2)}
+.chip i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:baseline}
+main{padding-top:16px;display:grid;gap:16px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.kpi .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.kpi .v{font:600 26px/1.2 var(--serif);font-variant-numeric:tabular-nums;margin-top:2px}
+.kpi .n{font-size:12px;color:var(--muted);margin-top:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.card h2{font:600 17px/1.25 var(--serif);margin:0 0 2px;text-wrap:balance}
+.card .say{color:var(--muted);font-size:13px;margin:0 0 10px;max-width:70ch}
+.card .how{color:var(--muted);font-size:12px;margin-top:8px;border-top:1px dashed var(--line);padding-top:6px}
+.cv{position:relative;height:280px}.cv.tall{height:380px}.cv.short{height:220px}
+.tw{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}th{font-weight:600;color:var(--muted);font-size:12px}
+td.l,th.l{text-align:left}
+.heat td{text-align:center;padding:7px 4px;min-width:56px}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600}
+.ok{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}.fail{background:color-mix(in srgb,var(--bad) 18%,transparent);color:var(--bad)}
+.note{border-left:3px solid var(--mark);padding:8px 12px;background:var(--surface);border-radius:0 8px 8px 0;font-size:13px}
+.find{display:grid;gap:10px}
+.find .f{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:start}
+.find .num{font:600 22px var(--serif);color:var(--accent)}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:8px;padding:4px 10px;font:13px var(--sans);cursor:pointer}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
+footer{color:var(--muted);font-size:12px;padding-top:16px}
+@media (max-width:520px){h1{font-size:22px}.kpi .v{font-size:22px}.cv{height:240px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<div class="wrap">
+<header class="top"><div><h1>Book sales: eight years of invoices</h1><div class="sub" id="sub"></div></div><div class="sub" id="gen"></div></header>
+<div class="bar">
+<nav class="tabs" id="tabs" aria-label="Pages"></nav>
+<div class="filters">
+<label>Years <select id="y0"></select> to <select id="y1"></select></label>
+<span id="types" role="group" aria-label="Customer type"></span>
+<label id="titlebox" hidden>Book <select id="title"></select></label>
+</div></div>
+<main id="main" aria-live="polite"></main>
+<footer id="foot"></footer>
+</div>
+<script id="payload" type="application/json">/*__PAYLOAD__*/</script>
+<script>/*__CHARTJS__*/</script>
+<script>
+(function(){
+"use strict";
+const P=JSON.parse(document.getElementById('payload').textContent);
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const TYPES=['School','Bookshop','Individual','Regional coordinator','Unknown'],TVAR={School:'--t-school',Bookshop:'--t-book',Individual:'--t-ind','Regional coordinator':'--t-coord',Unknown:'--t-unk'};
+const CUS=P.customers.map(c=>({id:c[0],name:c[1],type:c[2],loc:c[3]}));
+const INV=P.inv.map((r,i)=>({i,y:r[0],no:r[1],d:r[2],m:+r[2].slice(5,7),c:r[3],net:r[4],gross:r[5],disc:r[6]||0,books:r[7],nl:r[8],dow:new Date(r[2]+'T00:00:00').getDay()}));
+const LIN=P.lines.map(r=>({inv:r[0],t:r[1],q:r[2],p:r[3],lt:r[4],nl:r[5]}));
+const LBI=new Map();LIN.forEach(l=>{if(!LBI.has(l.inv))LBI.set(l.inv,[]);LBI.get(l.inv).push(l)});
+const NONBOOK=new Set(['TRANSPORTATION','SHORTFALL (EARLIER SUPPLY)']);const TITLES=P.titles,YEARS=P.years,END=new Date(P.data_end+'T00:00:00');
+const S={y0:YEARS[0],y1:YEARS[YEARS.length-1],types:new Set(TYPES),title:'all',tab:'overview'};
+const $=s=>document.querySelector(s);
+const fm=n=>n==null||isNaN(n)?'-':'₦'+Math.round(n).toLocaleString('en-US');
+const fk=n=>{const a=Math.abs(n);return '₦'+(a>=1e6?(n/1e6).toFixed(2)+'M':a>=1e3?Math.round(n/1e3)+'k':Math.round(n))};
+const fn=n=>n==null||isNaN(n)?'-':Math.round(n).toLocaleString('en-US');
+const pc=(a,b,d=1)=>b?(100*a/b).toFixed(d)+'%':'-';
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const sum=(a,f)=>a.reduce((s,x)=>s+(f(x)||0),0);
+function group(a,kf){const m=new Map();a.forEach(x=>{const k=kf(x);if(!m.has(k))m.set(k,[]);m.get(k).push(x)});return m}
+const custType=i=>CUS[INV[i].c].type;
+function cur(){return INV.filter(r=>r.net!=null&&r.y>=S.y0&&r.y<=S.y1&&S.types.has(CUS[r.c].type))}
+function curLines(inv){const ids=new Set(inv.map(r=>r.i));const out=[];ids.forEach(i=>{(LBI.get(i)||[]).forEach(l=>{if(S.title==='all'||TITLES[l.t]===S.title)out.push(l)})});return out}
+function titleRanks(){const m=new Map();LIN.forEach(l=>{if(l.nl!=null)m.set(l.t,(m.get(l.t)||0)+l.nl)});return [...m.entries()].sort((a,b)=>b[1]-a[1]).map(e=>e[0])}
+const RANK=titleRanks();
+function tcol(t){const k=RANK.indexOf(t);return k>=0&&k<8?css('--c'+(k+1)):css('--other')}
+/* ---------- charts */
+let charts=[];function killCharts(){charts.forEach(c=>c.destroy());charts=[]}
+function mk(id,cfg){const el=document.getElementById(id);if(!el)return;const fg=css('--muted'),gl=css('--line');
+cfg.options=Object.assign({responsive:true,maintainAspectRatio:false,animation:false},cfg.options||{});
+const o=cfg.options;o.plugins=Object.assign({legend:{labels:{color:fg,boxWidth:10,boxHeight:10}}},o.plugins||{});
+if(o.plugins.legend&&o.plugins.legend.labels===undefined)o.plugins.legend.labels={color:fg};
+const sc=o.scales||(o.scales={});if(cfg.type!=='doughnut'&&cfg.type!=='pie'){['x','y','y1'].forEach(a=>{if(sc[a]||a!=='y1'){sc[a]=Object.assign({ticks:{color:fg},grid:{color:gl}},sc[a]||{});sc[a].ticks=Object.assign({color:fg},sc[a].ticks||{});sc[a].grid=Object.assign({color:gl},sc[a].grid||{})}})}
+charts.push(new Chart(el,cfg))}
+const noLegend={legend:{display:false}};
+/* ---------- helpers for pages */
+function card(t,say,body,how,extra){return `<section class="card ${extra||''}"><h2>${t}</h2>${say?`<p class="say">${say}</p>`:''}${body}${how?`<div class="how">How this is calculated: ${how}</div>`:''}</section>`}
+function kpi(l,v,n){return `<div class="card kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="n">${n||''}</div></div>`}
+function table(head,rows,cls){return `<div class="tw"><table class="${cls||''}"><thead><tr>${head.map((h,i)=>`<th class="${i?'':'l'}">${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'':'l'}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`}
+const cv=(id,c)=>`<div class="cv ${c||''}"><canvas id="${id}" role="img" aria-label="${id}"></canvas></div>`;
+const rng=()=>S.y0===S.y1?String(S.y0):S.y0+' to '+S.y1;
+function sel(){return `${rng()}, ${S.types.size===TYPES.length?'all customer types':[...S.types].join(' + ')}`}
+function empty(){return '<div class="note">Nothing matches these filters. Widen the years or turn a customer type back on.</div>'}
+/* ---------- pages */
+const pages={};
+pages.overview=()=>{const inv=cur();if(!inv.length)return empty();const by=group(inv,r=>r.y);const ys=[...by.keys()].sort();
+const rev=sum(inv,r=>r.net),gr=sum(inv,r=>r.gross),ds=sum(inv,r=>r.disc),bk=sum(inv,r=>r.books),cust=new Set(inv.map(r=>r.c)).size;
+const rowsY=ys.map((y,k)=>{const a=by.get(y),r=sum(a,x=>x.net),pr=k?sum(by.get(ys[k-1]),x=>x.net):null;const js=sum(a.filter(x=>x.m<=9),x=>x.net);return [y,fn(a.length),fn(sum(a,x=>x.books)),fm(r),pr?((r/pr-1)*100).toFixed(0)+'%':'-',fm(r/a.length),fm(js),pc(sum(a,x=>x.disc),sum(a,x=>x.gross))]});
+setTimeout(()=>{
+mk('o1',{type:'bar',data:{labels:ys,datasets:[{type:'bar',label:'Revenue (₦)',data:ys.map(y=>sum(by.get(y),x=>x.net)),backgroundColor:css('--c1'),yAxisID:'y',order:2},{type:'line',label:'Books sold',data:ys.map(y=>sum(by.get(y),x=>x.books)),borderColor:css('--c2'),backgroundColor:css('--c2'),yAxisID:'y1',tension:.25,order:1}]},options:{scales:{y:{ticks:{callback:v=>fk(v)}},y1:{position:'right',grid:{drawOnChartArea:false},ticks:{callback:v=>fn(v)}}}}});
+mk('o2',{type:'bar',data:{labels:ys,datasets:[{type:'line',label:'Average order (₦)',data:ys.map(y=>sum(by.get(y),x=>x.net)/by.get(y).length),borderColor:css('--c4'),backgroundColor:css('--c4'),yAxisID:'y',tension:.25},{type:'bar',label:'Invoices',data:ys.map(y=>by.get(y).length),backgroundColor:css('--c5'),yAxisID:'y1'}]},options:{scales:{y:{ticks:{callback:v=>fk(v)}},y1:{position:'right',grid:{drawOnChartArea:false}}}}})},0);
+const first=ys[0],last=ys[ys.length-1];const unp=INV.filter(r=>r.net==null&&r.y>=S.y0&&r.y<=S.y1&&S.types.has(CUS[r.c].type)).length;
+return `<div class="cards">${kpi('Revenue',fk(rev),fm(rev)+' paid')}${kpi('Invoices',fn(inv.length),sel()+(unp?' (+'+unp+' with no prices)':''))}${kpi('Books sold',fn(bk),'copies')}${kpi('Average order',fm(rev/inv.length),'per invoice')}${kpi('Discounts given',pc(ds,gr),fm(ds)+' of '+fm(gr)+' gross')}${kpi('Customers',fn(cust),'with at least one invoice')}</div>
+<div class="grid">${card('Revenue and books sold per year',ys.length>1?`Revenue went from ${fk(sum(by.get(first),x=>x.net))} in ${first} to ${fk(sum(by.get(last),x=>x.net))} in ${last}; books sold went from ${fn(sum(by.get(first),x=>x.books))} to ${fn(sum(by.get(last),x=>x.books))}. Prices rose, so revenue grew faster than copies. ${last===YEARS[YEARS.length-1]?'The last year stops on '+P.data_end+'.':''}`:'One year selected.',cv('o1'),'Net_Total of each invoice (what was paid), counted once; books = sum of Qty.')}
+${card('Fewer, bigger orders',ys.length>1?`The average invoice moved from ${fm(sum(by.get(first),x=>x.net)/by.get(first).length)} to ${fm(sum(by.get(last),x=>x.net)/by.get(last).length)} while the number of invoices went from ${by.get(first).length} to ${by.get(last).length}.`:'',cv('o2'),'revenue / invoices; invoices counted once.')}</div>
+${card('Year by year',`Jan to Sep is shown so a partial year (2019 starts 15 Jan, 2026 ends ${P.data_end}) can be compared like for like.`,table(['Year','Invoices','Books','Revenue','Change','Average order','Revenue Jan-Sep','Discount'],rowsY),'one row per year from the invoices file; change = revenue against the previous year in the table.')}`};
+pages.months=()=>{const inv=cur();if(!inv.length)return empty();const yrs=[...new Set(inv.map(r=>r.y))].sort();const M=Array.from({length:12},()=>({}));let mx=0;
+inv.forEach(r=>{M[r.m-1][r.y]=(M[r.m-1][r.y]||0)+r.net});M.forEach(o=>Object.values(o).forEach(v=>{if(v>mx)mx=v}));
+const tot=M.map(o=>Object.values(o).reduce((a,b)=>a+b,0)),T=tot.reduce((a,b)=>a+b,0);
+const hc=v=>{if(!v)return '';const a=Math.min(1,v/mx);return `background:color-mix(in srgb,var(--accent) ${Math.round(8+a*72)}%,var(--surface));color:${a>.55?'var(--accent-fg)':'var(--fg)'}`};
+const rows=M.map((o,i)=>`<tr><td class="l">${MONTHS[i]}</td>${yrs.map(y=>`<td style="${hc(o[y])}">${o[y]?fk(o[y]):'·'}</td>`).join('')}<td><b>${fk(tot[i])}</b></td><td>${pc(tot[i],T)}</td></tr>`).join('');
+const rank=tot.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]);const mm=new Map();inv.forEach(r=>{const k=r.d.slice(0,7);mm.set(k,(mm.get(k)||0)+r.net)});const ks=[...mm.keys()].sort();
+setTimeout(()=>{mk('m1',{type:'bar',data:{labels:MONTHS,datasets:[{label:'Revenue (₦)',data:tot,backgroundColor:tot.map((v,i)=>i===rank[0][1]||i===rank[1][1]?css('--mark'):css('--c1'))}]},options:{plugins:noLegend,scales:{y:{ticks:{callback:v=>fk(v)}}}}});
+mk('m2',{type:'bar',data:{labels:ks,datasets:[{label:'Revenue (₦)',data:ks.map(k=>mm.get(k)),backgroundColor:css('--c5')}]},options:{plugins:noLegend,scales:{y:{ticks:{callback:v=>fk(v)}},x:{ticks:{maxTicksLimit:14,autoSkip:true}}}}})},0);
+return `<div class="grid">${card('Which months bring the money',`${MONTHS[rank[0][1]]} is ${pc(rank[0][0],T,0)} of all revenue and ${MONTHS[rank[1][1]]} is ${pc(rank[1][0],T,0)}: together ${pc(rank[0][0]+rank[1][0],T,0)}. The weakest months are ${MONTHS[rank[11][1]]} and ${MONTHS[rank[10][1]]}. (Revenue, not profit: the costs are not in the data yet.)`,cv('m1'),'invoice revenue summed by calendar month over the selected years; the two highest months are marked.')}
+${card('Every month on a timeline','Peaks line up with the school year starting; the quiet stretches are the holidays.',cv('m2'),'invoice revenue per calendar month.')}</div>
+${card('Month by year','Darker means more revenue. A dot means no invoice that month.',`<div class="tw"><table class="heat"><thead><tr><th class="l">Month</th>${yrs.map(y=>`<th>${y}</th>`).join('')}<th>All years</th><th>Share</th></tr></thead><tbody>${rows}</tbody></table></div>`,'revenue of invoices dated in that month and year.')}`};
+pages.customers=()=>{const inv=cur();if(!inv.length)return empty();const by=group(inv,r=>r.c);
+const all=INV.filter(r=>r.net!=null&&S.types.has(CUS[r.c].type));
+const rows=[...by.entries()].map(([c,a])=>({c,name:CUS[c].name,type:CUS[c].type,n:a.length,rev:sum(a,x=>x.net),yrs:new Set(a.map(x=>x.y)).size,first:a.map(x=>x.d).sort()[0],last:a.map(x=>x.d).sort().slice(-1)[0]}));
+const T=sum(rows,r=>r.rev)||1;const mode=S.rankBy||'rev';const key={rev:'rev',n:'n',yrs:'yrs'}[mode];
+const top=[...rows].sort((a,b)=>b[key]-a[key]||b.rev-a.rev);const t15=top.slice(0,15);
+const byRev=[...rows].sort((a,b)=>b.rev-a.rev);let cum=0;const par=byRev.map(r=>(cum+=r.rev)/T*100);const n50=par.findIndex(v=>v>=50)+1,n80=par.findIndex(v=>v>=80)+1;
+const fy=new Map();INV.forEach(r=>{if(r.net==null)return;const f=fy.get(r.c);if(f==null||r.y<f)fy.set(r.c,r.y)});
+const ys=[...new Set(inv.map(r=>r.y))].sort();const byY=group(inv,r=>r.y);
+const nr=ys.map(y=>{const cs=new Set(byY.get(y).map(r=>r.c));let nw=0;cs.forEach(c=>{if(fy.get(c)===y)nw++});return [y,nw,cs.size-nw,cs.size]});
+const ret=ys.slice(1).map((y,i)=>{const p=new Set(byY.get(ys[i]).map(r=>r.c)),c=new Set(byY.get(y).map(r=>r.c));let k=0;p.forEach(x=>{if(c.has(x))k++});return [y,p.size,k,pc(k,p.size,0)]});
+const cut=new Date(END);cut.setFullYear(cut.getFullYear()-1);const cs=cut.toISOString().slice(0,10);
+const risk=rows.filter(r=>r.n>=2&&r.last<cs).sort((a,b)=>b.rev-a.rev).slice(0,12);
+const tm=group(inv,r=>CUS[r.c].type);const tr=TYPES.filter(t=>tm.has(t)).map(t=>[t,sum(tm.get(t),x=>x.net),new Set(tm.get(t).map(x=>x.c)).size]);
+setTimeout(()=>{
+mk('c1',{type:'bar',data:{labels:t15.map(r=>r.name.length>26?r.name.slice(0,25)+'…':r.name),datasets:[{label:mode==='rev'?'Revenue (₦)':mode==='n'?'Invoices':'Years active',data:t15.map(r=>r[key]),backgroundColor:t15.map(r=>css(TVAR[r.type]))}]},options:{indexAxis:'y',plugins:noLegend,scales:{x:{ticks:{callback:v=>mode==='rev'?fk(v):v}}}}});
+mk('c2',{type:'line',data:{labels:par.map((_,i)=>i+1),datasets:[{label:'Share of revenue (%)',data:par,borderColor:css('--c1'),backgroundColor:css('--c1'),pointRadius:0,fill:false}]},options:{plugins:noLegend,scales:{y:{max:100,ticks:{callback:v=>v+'%'}},x:{ticks:{maxTicksLimit:10},title:{display:true,text:'customers, biggest first',color:css('--muted')}}}}});
+mk('c3',{type:'bar',data:{labels:nr.map(r=>r[0]),datasets:[{label:'New customers',data:nr.map(r=>r[1]),backgroundColor:css('--c2')},{label:'Returning',data:nr.map(r=>r[2]),backgroundColor:css('--c1')}]},options:{scales:{x:{stacked:true},y:{stacked:true}}}});
+mk('c4',{type:'doughnut',data:{labels:tr.map(r=>r[0]),datasets:[{data:tr.map(r=>r[1]),backgroundColor:tr.map(r=>css(TVAR[r[0]])),borderColor:css('--surface')}]},options:{plugins:{legend:{position:'bottom',labels:{color:css('--muted'),boxWidth:10}}}}})},0);
+const chips=[['rev','Revenue'],['n','Invoices'],['yrs','Years active']].map(([k,l])=>`<button class="chip" data-rank="${k}" aria-pressed="${mode===k}">${l}</button>`).join(' ');
+return `<div class="cards">${kpi('Customers',fn(rows.length),'in the selection')}${kpi('Bought more than once',fn(rows.filter(r=>r.n>=2).length),pc(rows.filter(r=>r.n>=2).length,rows.length,0)+' of customers')}${kpi('Top 10 customers',pc(sum(byRev.slice(0,10),r=>r.rev),T,0),'of revenue')}${kpi('Customers for half the revenue',fn(n50),'and '+fn(n80)+' for 80%')}</div>
+<div class="grid">${card('Who matters most',`Three different answers: most revenue, most invoices, most years as a customer. ${chips}`,cv('c1','tall'),'customers merged from the 497 spellings on the invoices into one name each (the owner confirmed the merges); the bar colour is the customer type.')}
+${card('How concentrated is the business',`${fn(n50)} customers make half of the revenue and ${fn(n80)} make 80% (of ${fn(rows.length)}). A flat curve means no single customer carries the business.`,cv('c2','tall'),'customers sorted by revenue, cumulative share of the total.')}
+${card('New and returning customers',`Each year split into customers whose first invoice ever was that year and customers who bought before.`,cv('c3'),'first invoice year of each customer over all years.')}
+${card('Who the customers are',`Revenue by type of customer. The type was set from the name (school, bookshop, individual, regional coordinator) and the owner accepted it.`,cv('c4')+table(['Type','Revenue','Customers'],tr.map(r=>[r[0],fm(r[1]),r[2]])),'')}</div>
+${card('Do they come back?','Share of last year\'s customers who bought again this year.',table(['Year','Customers the year before','Bought again','Share'],ret.map(r=>[r[0],r[1],r[2],r[3]])),'a customer counts if they have an invoice in both years.')}
+${card('Gone quiet: bought more than once, nothing in the last 12 months',`Customers with 2 or more invoices and no invoice since ${cs}. Worth a call.`,table(['Customer','Type','Invoices','Last invoice','Revenue'],risk.map(r=>[r.name,r.type,r.n,r.last,fm(r.rev)])),'last invoice date older than a year before the end of the data.')}
+${card('Top 25 customers','Sorted as chosen above.',table(['Customer','Type','Invoices','Years','First','Last','Revenue','Share'],top.slice(0,25).map(r=>[r.name,r.type,r.n,r.yrs,r.first,r.last,fm(r.rev),pc(r.rev,T)])),'one row per merged customer.')}`};
+pages.books=()=>{const inv=cur();if(!inv.length)return empty();const lines=[];const idset=new Set(inv.map(r=>r.i));LIN.forEach(l=>{if(idset.has(l.inv)&&l.nl!=null)lines.push(l)});
+const nb=sum(lines.filter(l=>NONBOOK.has(TITLES[l.t])),l=>l.nl);const L0=lines.filter(l=>!NONBOOK.has(TITLES[l.t]));const L=S.title==='all'?L0:L0.filter(l=>TITLES[l.t]===S.title);
+const bt=group(L,l=>l.t);const rows=[...bt.entries()].map(([t,a])=>({t,name:TITLES[t],q:sum(a,x=>x.q),rev:sum(a,x=>x.nl),n:new Set(a.map(x=>x.inv)).size})).sort((a,b)=>b.rev-a.rev);const T=sum(rows,r=>r.rev);
+const ys=[...new Set(inv.map(r=>r.y))].sort();const yof=l=>INV[l.inv].y;
+const top8=rows.slice(0,8).map(r=>r.t);
+const stack=[...top8,-1].map(t=>({label:t<0?'Other titles':TITLES[t],data:ys.map(y=>sum(L.filter(l=>yof(l)===y&&(t<0?!top8.includes(l.t):l.t===t)),x=>x.nl)),backgroundColor:t<0?css('--other'):tcol(t)}));
+const priceDs=RANK.filter(t=>L.some(l=>l.t===t&&l.p)).slice(0,8).map(t=>({label:TITLES[t],borderColor:tcol(t),backgroundColor:tcol(t),tension:.15,spanGaps:true,data:ys.map(y=>{const ps=L.filter(l=>l.t===t&&yof(l)===y&&l.p).map(l=>l.p);if(!ps.length)return null;const c=new Map();ps.forEach(p=>c.set(p,(c.get(p)||0)+1));return [...c.entries()].sort((a,b)=>b[1]-a[1])[0][0]})}));
+const pair=new Map();let full=0;const byI=group(L,l=>l.inv);byI.forEach(a=>{const ts=[...new Set(a.map(x=>x.t))].sort((x,y)=>x-y);if(ts.length>=8)full++;for(let i=0;i<ts.length;i++)for(let j=i+1;j<ts.length;j++){const k=ts[i]+'|'+ts[j];pair.set(k,(pair.get(k)||0)+1)}});
+const pr=[...pair.entries()].sort((a,b)=>b[1]-a[1]).slice(0,10).map(([k,v])=>{const [a,b]=k.split('|');return [TITLES[a]+' + '+TITLES[b],v,pc(v,byI.size,0)]});
+const life=rows.map(r=>{const ds=L.filter(l=>l.t===r.t).map(l=>INV[l.inv].d).sort();return [r.name,ds[0],ds[ds.length-1],fn(r.q),fm(r.rev),pc(r.rev,T)]});
+setTimeout(()=>{mk('b1',{type:'bar',data:{labels:rows.map(r=>r.name),datasets:[{label:'Revenue (₦)',data:rows.map(r=>r.rev),backgroundColor:rows.map(r=>tcol(r.t))}]},options:{indexAxis:'y',plugins:noLegend,scales:{x:{ticks:{callback:v=>fk(v)}}}}});
+mk('b2',{type:'bar',data:{labels:ys,datasets:stack},options:{scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>fk(v)}}}}});
+mk('b3',{type:'line',data:{labels:ys,datasets:priceDs},options:{scales:{y:{ticks:{callback:v=>'₦'+v}}}}})},0);
+const lead=rows[0];
+return `${nb?`<div class="note">${fm(nb)} of transport charges are in the revenue but are not a book, so they are left out of these charts.</div>`:''}<div class="grid">${card('Which books earn most',lead?`${lead.name} is the biggest title with ${pc(lead.rev,T,0)} of revenue (${fn(lead.q)} copies). The top three together are ${pc(sum(rows.slice(0,3),r=>r.rev),T,0)}.`:'',cv('b1','tall'),'invoice net revenue shared out over the lines in proportion to the line totals, so titles add up to the invoices.')}
+${card('Mix of titles over the years','The top eight titles by revenue have their own colour; the rest are grey.',cv('b2','tall'),'revenue of each title per year.')}
+${card('How each price moved',`Usual price (most common) per title and year. Prices climb over the years; a sharp jump in one title is worth checking against the price list.`,cv('b3','tall'),'most common unit price of the title in that year.')}
+${card('Bought together',`${fn(full)} orders contain 8 or more different titles (the full set). The pairs below appear in the same invoice most often.`,table(['Pair','Invoices','Share of orders'],pr),'invoices containing both titles.')}</div>
+${card('Life of each title','First and last invoice in the selected years.',table(['Title','First','Last','Copies','Revenue','Share'],life),'')}`};
+pages.prices=()=>{const inv=cur();if(!inv.length)return empty();const ys=[...new Set(inv.map(r=>r.y))].sort();const by=group(inv,r=>r.y);
+const bt=group(inv,r=>CUS[r.c].type);const bands=[[0,10000,'under ₦10k'],[10000,25000,'₦10k-25k'],[25000,50000,'₦25k-50k'],[50000,100000,'₦50k-100k'],[100000,1e12,'₦100k and over']];
+const bs=bands.map(b=>{const a=inv.filter(r=>r.net>=b[0]&&r.net<b[1]);return [b[2],a.length,sum(a,x=>x.disc),sum(a,x=>x.gross)]});
+const ids=new Set(inv.map(r=>r.i));const med=a=>{a=a.sort((x,y)=>x-y);return a.length?a[Math.floor(a.length/2)]:null};
+const price=[];TITLES.forEach((t,k)=>{const o={School:[],Bookshop:[]};LIN.forEach(l=>{if(l.t===k&&l.p&&ids.has(l.inv)){const ty=CUS[INV[l.inv].c].type;if(o[ty])o[ty].push(l.p)}});if(o.School.length&&o.Bookshop.length){const a=med(o.School),b=med(o.Bookshop);price.push([t,fm(a)+' ('+o.School.length+')',fm(b)+' ('+o.Bookshop.length+')',((b/a-1)*100).toFixed(0)+'%'])}});
+const dz=inv.filter(r=>r.disc>0).length;
+setTimeout(()=>{mk('p1',{type:'bar',data:{labels:ys,datasets:[{label:'Discount, % of gross',data:ys.map(y=>100*sum(by.get(y),x=>x.disc)/sum(by.get(y),x=>x.gross)),backgroundColor:css('--c4')}]},options:{plugins:noLegend,scales:{y:{ticks:{callback:v=>v+'%'}}}}});
+const tk=TYPES.filter(t=>bt.has(t));mk('p2',{type:'bar',data:{labels:tk,datasets:[{label:'Discount, % of gross',data:tk.map(t=>100*sum(bt.get(t),x=>x.disc)/sum(bt.get(t),x=>x.gross)),backgroundColor:tk.map(t=>css(TVAR[t]))}]},options:{plugins:noLegend,scales:{y:{ticks:{callback:v=>v+'%'}}}}});
+mk('p3',{type:'bar',data:{labels:bs.map(b=>b[0]),datasets:[{label:'Discount, % of gross',data:bs.map(b=>b[3]?100*b[2]/b[3]:0),backgroundColor:css('--c5')}]},options:{plugins:noLegend,scales:{y:{ticks:{callback:v=>v+'%'}}}}})},0);
+return `<div class="cards">${kpi('Discount given',pc(sum(inv,r=>r.disc),sum(inv,r=>r.gross)),fm(sum(inv,r=>r.disc)))}${kpi('Invoices with a discount',pc(dz,inv.length,0),fn(dz)+' of '+fn(inv.length))}</div>
+<div class="grid">${card('Discount over the years',`Share of the gross value that was given away.`,cv('p1'),'sum of Discount / sum of Gross_Total of the invoices.')}
+${card('Discount by type of customer','Bookshops and schools are compared on the same basis.',cv('p2'),'')}
+${card('Do bigger orders get bigger discounts?','Discount as a share of gross, by size of the invoice.',cv('p3'),'')}
+${card('School price against bookshop price','Median unit price paid for the same title (number of lines in brackets). A negative gap means bookshops pay less.',table(['Title','Schools pay','Bookshops pay','Gap'],price),'median of the line unit prices in the selected years.')}</div>`};
+pages.orders=()=>{const inv=cur();if(!inv.length)return empty();const bands=[[0,5000,'under ₦5k'],[5000,10000,'₦5-10k'],[10000,20000,'₦10-20k'],[20000,50000,'₦20-50k'],[50000,100000,'₦50-100k'],[100000,1e12,'₦100k+']];
+const hb=bands.map(b=>inv.filter(r=>r.net>=b[0]&&r.net<b[1]).length);const bk=[[0,10],[10,25],[25,50],[50,100],[100,1e9]];const bb=bk.map(b=>inv.filter(r=>r.books>=b[0]&&r.books<b[1]).length);
+const top=[...inv].sort((a,b)=>b.net-a.net).slice(0,15);const wd=[1,2,3,4,5,6,0];
+setTimeout(()=>{mk('r1',{type:'bar',data:{labels:bands.map(b=>b[2]),datasets:[{label:'Invoices',data:hb,backgroundColor:css('--c1')}]},options:{plugins:noLegend}});
+mk('r2',{type:'bar',data:{labels:['under 10','10-24','25-49','50-99','100+'],datasets:[{label:'Invoices',data:bb,backgroundColor:css('--c2')}]},options:{plugins:noLegend}});
+mk('r3',{type:'bar',data:{labels:wd.map(d=>DOW[d]),datasets:[{label:'Revenue (₦)',data:wd.map(d=>sum(inv.filter(r=>r.dow===d),x=>x.net)),backgroundColor:css('--c5')}]},options:{plugins:noLegend,scales:{y:{ticks:{callback:v=>fk(v)}}}}})},0);
+const med=(()=>{const a=inv.map(r=>r.net).sort((x,y)=>x-y);return a[Math.floor(a.length/2)]})();
+return `<div class="cards">${kpi('Median order',fm(med),'half the invoices are smaller')}${kpi('Average order',fm(sum(inv,r=>r.net)/inv.length),'pulled up by big orders')}${kpi('Largest order',fm(top[0].net),CUS[top[0].c].name)}</div>
+<div class="grid">${card('How big are the orders','Most invoices are small; a few large ones carry much of the revenue.',cv('r1'),'invoices by size band (Net_Total).')}
+${card('Books per order','',cv('r2'),'sum of Qty per invoice.')}
+${card('Busiest weekdays','Revenue by the weekday of the invoice date.',cv('r3'),'the date written on the paper.')}</div>
+${card('The 15 largest orders','',table(['Date','Invoice','Customer','Type','Books','Revenue'],top.map(r=>[r.d,r.no,CUS[r.c].name,CUS[r.c].type,fn(r.books),fm(r.net)])),'')}`};
+pages.profit=()=>{const C=P.cost;if(!C.method){return `<div class="note"><b>Waiting for the cost of the books.</b> Everything on this page (profit, margin, the most profitable month, profit by customer and by title) appears by itself as soon as the cost file is in <code>DATA_FINAL/8_cost_input/</code> and the dashboard is rebuilt (double-click <code>update_dashboard.bat</code>). The templates and the instructions are in that folder (<code>WHEN_COST_ARRIVES.md</code>).</div>
+<div class="grid">${card('What will be here','',`<ul><li>Gross profit and margin per year, per month and per title.</li><li>The most profitable month across the years (next to the month with the most revenue).</li><li>Profit per customer: who is important by profit, not only by revenue.</li><li>Which discounts cost the most.</li></ul>`)}${card('What it needs','',`<ul><li>The cost per copy of each title in each year (best), or one average cost per year, or a percentage of the selling price.</li><li>Nothing is guessed: a title or year without a cost shows revenue only.</li></ul>`)}</div>`}
+const inv=cur();if(!inv.length)return empty();const cost=new Map();C.rows.forEach(r=>cost.set(r[0]+'|'+r[1],r[2]));
+const lc=l=>{const y=INV[l.inv].y;if(l.nl==null||l.q==null)return null;if(C.method==='A'){const c=cost.get(TITLES[l.t]+'|'+y);return c==null?null:c*l.q}if(C.method==='B'){const c=cost.get('*|'+y);return c==null?null:c*l.q}const p=cost.get('*|'+y);return p==null?null:l.nl*p/100};
+const ids=new Set(inv.map(r=>r.i));const rowsL=[];LIN.forEach(l=>{if(ids.has(l.inv)&&l.nl!=null){const c=lc(l);rowsL.push({l,inv:INV[l.inv],c})}});
+const cov=rowsL.filter(x=>x.c!=null);const rev=sum(cov,x=>x.l.nl),cs=sum(cov,x=>x.c),all=sum(rowsL,x=>x.l.nl);
+const yy=group(cov,x=>x.inv.y),ys=[...yy.keys()].sort(),mm=group(cov,x=>x.inv.m),cg=group(cov,x=>x.inv.c),tg=group(cov,x=>x.l.t);
+const mrow=[...Array(12).keys()].map(m=>{const a=mm.get(m+1)||[];return [m,sum(a,x=>x.l.nl)-sum(a,x=>x.c),sum(a,x=>x.l.nl)]});const bm=[...mrow].sort((a,b)=>b[1]-a[1])[0];
+const cus=[...cg.entries()].map(([c,a])=>({n:CUS[c].name,p:sum(a,x=>x.l.nl)-sum(a,x=>x.c),r:sum(a,x=>x.l.nl)})).sort((a,b)=>b.p-a.p).slice(0,12);
+const tt=[...tg.entries()].map(([t,a])=>({n:TITLES[t],p:sum(a,x=>x.l.nl)-sum(a,x=>x.c),r:sum(a,x=>x.l.nl)})).sort((a,b)=>b.p-a.p);
+setTimeout(()=>{mk('f1',{type:'bar',data:{labels:ys,datasets:[{label:'Revenue',data:ys.map(y=>sum(yy.get(y),x=>x.l.nl)),backgroundColor:css('--c5')},{label:'Gross profit',data:ys.map(y=>sum(yy.get(y),x=>x.l.nl)-sum(yy.get(y),x=>x.c)),backgroundColor:css('--c1')}]},options:{scales:{y:{ticks:{callback:v=>fk(v)}}}}});
+mk('f2',{type:'bar',data:{labels:MONTHS,datasets:[{label:'Gross profit',data:mrow.map(r=>r[1]),backgroundColor:mrow.map(r=>r[0]===bm[0]?css('--mark'):css('--c1'))}]},options:{plugins:noLegend,scales:{y:{ticks:{callback:v=>fk(v)}}}}})},0);
+return `<div class="note">Cost source: ${C.note}. Revenue with a cost: ${pc(cov.reduce((s,x)=>s+x.l.nl,0),all,0)}. ${C.warnings.length?'Warnings: '+C.warnings.join('; '):''}</div>
+<div class="cards">${kpi('Revenue (with cost)',fk(rev),'')}${kpi('Cost of books',fk(cs),'')}${kpi('Gross profit',fk(rev-cs),'')}${kpi('Margin',pc(rev-cs,rev),'of revenue')}</div>
+<div class="grid">${card('Profit per year','Revenue next to gross profit (revenue less the cost of the copies sold).',cv('f1'),'line net revenue minus quantity times unit cost.')}
+${card('Most profitable month',`${MONTHS[bm[0]]} earns the most gross profit (${fk(bm[1])}) over the selected years.`,cv('f2'),'gross profit summed by calendar month.')}
+${card('Customers by profit','',table(['Customer','Revenue','Gross profit','Margin'],cus.map(r=>[r.n,fm(r.r),fm(r.p),pc(r.p,r.r)])),'')}
+${card('Titles by profit','',table(['Title','Revenue','Gross profit','Margin'],tt.map(r=>[r.n,fm(r.r),fm(r.p),pc(r.p,r.r)])),'')}</div>`};
+pages.story=()=>{const A=INV.filter(r=>r.net!=null);const by=group(A,r=>r.y);const ys=[...by.keys()].sort();const R=y=>sum(by.get(y),x=>x.net),B=y=>sum(by.get(y),x=>x.books);
+const tot=sum(A,r=>r.net);const mt=Array.from({length:12},(_,m)=>sum(A.filter(r=>r.m===m+1),x=>x.net));const mr=mt.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]);
+const cb=group(A,r=>r.c);const cr=[...cb.entries()].map(([c,a])=>[c,sum(a,x=>x.net),a.length,new Set(a.map(x=>x.y)).size]).sort((a,b)=>b[1]-a[1]);
+const top10=sum(cr.slice(0,10),x=>x[1]);const loyal=cr.filter(x=>x[3]>=4).length;
+const tm=group(A,r=>CUS[r.c].type);const sch=sum(tm.get('School')||[],x=>x.net),bkp=sum(tm.get('Bookshop')||[],x=>x.net);
+const sus=TITLES.indexOf('Book 03');const sp=y=>{const a=LIN.filter(l=>l.t===sus&&l.p&&INV[l.inv].y===y).map(l=>l.p),c=new Map();a.forEach(p=>c.set(p,(c.get(p)||0)+1));return [...c.entries()].sort((a,b)=>b[1]-a[1])[0]};
+const p0=sp(ys[0]),p1=sp(ys[ys.length-1]);const dsc=pc(sum(A,r=>r.disc),sum(A,r=>r.gross));
+const big=[...A].sort((a,b)=>b.net-a.net)[0];const tr=RANK[0];const best=[...ys].sort((a,b)=>R(b)-R(a))[0];
+const F=[
+[`${ys[0]} to ${ys[ys.length-1]}: ${fn(A.length)} invoices and ${fk(tot)} of revenue`,`Revenue was highest in ${best} (${fk(R(best))}). The data runs from ${P.data_start} to ${P.data_end}.`,'overview'],
+[`Two months do most of the work`,`${MONTHS[mr[0][1]]} (${pc(mr[0][0],tot,0)}) and ${MONTHS[mr[1][1]]} (${pc(mr[1][0],tot,0)}) are ${pc(mr[0][0]+mr[1][0],tot,0)} of all revenue: the new school year. ${MONTHS[mr[11][1]]} is the quietest month (${pc(mr[11][0],tot,1)}).`,'months'],
+[`Fewer, bigger orders`,`Invoices fell from ${by.get(ys[0]).length} in ${ys[0]} to ${by.get(ys[ys.length-1]).length} in ${ys[ys.length-1]}, while the average invoice rose from ${fm(R(ys[0])/by.get(ys[0]).length)} to ${fm(R(ys[ys.length-1])/by.get(ys[ys.length-1]).length)}.`,'overview'],
+[`Prices did most of the growth`,p0&&p1?`Book 03 went from ${fm(p0[0])} to ${fm(p1[0])} a copy (${(p1[0]/p0[0]).toFixed(1)} times). Books sold: ${fn(B(ys[0]))} in ${ys[0]}, ${fn(B(ys[ys.length-1]))} in ${ys[ys.length-1]} (the last year is partial).`:'','books'],
+[`A spread-out customer base`,`${fn(cr.length)} customers. The top 10 are ${pc(top10,tot,0)} of revenue. ${fn(loyal)} customers bought in 4 or more different years.`,'customers'],
+[`Schools are the business`,`Schools bring ${pc(sch,tot,0)} of revenue and bookshops ${pc(bkp,tot,0)}.`,'customers'],
+[`The most important customer`,`${CUS[cr[0][0]].name}: ${fk(cr[0][1])} over ${cr[0][2]} invoices in ${cr[0][3]} different years. The single biggest order was ${fm(big.net)} (${CUS[big.c].name}, ${big.d}).`,'customers'],
+[`The best-selling book`,`${TITLES[tr]} earns the most revenue over the years.`,'books'],
+[`Discounts are small`,`${dsc} of the gross value was given away as discount.`,'prices'],
+[`2020 was the COVID year`,`Schools were closed: only ${by.get(2020)?by.get(2020).length:'-'} invoices in 2020 against ${by.get(2019)?by.get(2019).length:'-'} in 2019, and revenue fell to ${fk(R(2020))} from ${fk(R(2019))}. In 2021 schools reopened: ${by.get(2021)?by.get(2021).length:'-'} invoices and ${fk(R(2021))}.`,'overview']];
+return `<div class="note">These sentences are written from the numbers each time the dashboard is built, so they never go stale. They cover all years and all customers (the filters above do not apply here). Revenue is what was paid; profit appears once the cost file is added.</div>
+<div class="card find">${F.filter(f=>f[1]).map((f,i)=>`<div class="f"><div class="num">${i+1}</div><div><b>${f[0]}</b><div class="sub">${f[1]} <button class="btn" data-go="${f[2]}">See the chart</button></div></div></div>`).join('')}</div>`};
+pages.trust=()=>{const T=P.trust;const yy=group(INV,r=>r.y);
+return `<div class="cards">${kpi('Invoices',fn(P.totals.invoices),fn(P.totals.lines)+' book lines')}${kpi('You checked',T.pct+'%',T.asked+' of '+T.of+' invoices (2019-2026 without 2021)')}${kpi('For comparison',T.reviewed2021+'%','of 2021, checked by hand')}${kpi('Rules built',T.rules,'each one cleared invoices automatically')}</div>
+<div class="grid">${card('How the data was made','',`<ul><li>Every invoice photo was read by Gemini into a spreadsheet, then read again by independent readers who never saw the spreadsheet.</li><li>A set of ${T.rules} written rules cleaned and checked it; only what the rules could not settle went to the owner.</li><li>A final review checked every photo against the data: no photo counted twice, printed numbers, arithmetic, dates against the numbering, prices.</li><li>Every decision has a record: who decided, what, why.</li></ul>`)}
+${card('The numbers reconcile','Each table was checked against the invoices file before this page was built.',table(['Check','Result'],P.checks.map(c=>[c[0],`<span class="pill ${c[3]==='OK'?'ok':'fail'}">${c[3]}</span> ${fn(c[1])}`])),'')}</div>
+${card('Read this before quoting a number','',`<ul><li><b>Revenue, not profit:</b> ${P.cost.method?'cost source: '+P.cost.note:'the cost of the books is not in the data yet'}.</li><li>Returns and refunds written on a few papers are not recorded: revenue is slightly overstated.</li><li>Only the papers that were photographed are here: some invoice numbers are missing in every year.</li><li>16 invoices have lines that do not add up to the total written on the paper (the owner's own arithmetic); they are listed in the final review and kept as written.</li><li>Prices are in naira of the day; they rose about 2.8 times from 2019 to 2026, so compare books sold as well as revenue.</li><li>2019 starts on ${P.data_start}; 2026 stops on ${P.data_end}.</li></ul>`)}`};
+/* ---------- chrome */
+const TABS=[['overview','Overview'],['months','Months'],['customers','Customers'],['books','Books'],['prices','Prices & discounts'],['orders','Orders'],['profit','Profit'],['story','Story'],['trust','Data trust']];
+function render(){killCharts();$('#main').innerHTML=pages[S.tab]();$('#titlebox').hidden=!(S.tab==='books');
+$('#tabs').innerHTML=TABS.map(([k,l])=>`<button data-tab="${k}" ${k===S.tab?'aria-current="true"':''}>${l}</button>`).join('');
+const fl=S.tab==='story'||S.tab==='trust';document.querySelector('.filters').style.display=fl?'none':'flex';
+document.querySelectorAll('[data-rank]').forEach(b=>b.onclick=()=>{S.rankBy=b.dataset.rank;render()});
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+try{history.replaceState(null,'','#'+S.tab)}catch(e){}}
+function go(t){S.tab=t;render();window.scrollTo(0,0)}
+function init(){
+$('#sub').textContent=`${P.totals.invoices} invoices, ${P.totals.books.toLocaleString('en-US')} books, ${P.data_start} to ${P.data_end}. Revenue is what was paid, in naira.`;
+$('#gen').textContent='Built '+P.generated;
+const opts=YEARS.map(y=>`<option>${y}</option>`).join('');$('#y0').innerHTML=opts;$('#y1').innerHTML=opts;$('#y0').value=S.y0;$('#y1').value=S.y1;
+$('#y0').onchange=e=>{S.y0=+e.target.value;if(S.y1<S.y0)S.y1=S.y0,$('#y1').value=S.y1;render()};
+$('#y1').onchange=e=>{S.y1=+e.target.value;if(S.y0>S.y1)S.y0=S.y1,$('#y0').value=S.y0;render()};
+$('#title').innerHTML='<option value="all">All books</option>'+TITLES.filter(t=>!NONBOOK.has(t)).map(t=>`<option>${t}</option>`).join('');$('#title').onchange=e=>{S.title=e.target.value;render()};
+function chips(){$('#types').innerHTML=TYPES.map(t=>`<button class="chip" data-type="${t}" aria-pressed="${S.types.has(t)}"><i style="background:var(${TVAR[t]})"></i>${t}</button>`).join(' ');
+document.querySelectorAll('[data-type]').forEach(b=>b.onclick=()=>{const t=b.dataset.type;if(S.types.has(t)){if(S.types.size>1)S.types.delete(t)}else S.types.add(t);chips();render()})}
+chips();
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)go(b.dataset.tab)});
+$('#foot').textContent=P.public?'Source: the processed data of this project (data/processed). Every table behind a chart is in analysis/tables.':'Source: DATA_FINAL/3_analysis_ready and 6_customer_master. Built by 0_AUTOMATION/build_dashboard.py. Every table behind a chart is in DATA_FINAL/7_kpi_tables.';
+const h=(location.hash||'').slice(1);if(pages[h])S.tab=h;
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',render);
+render()}
+init();
+})();
+</script>

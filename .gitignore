@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.DS_Store
+.ipynb_checkpoints/
+# cost figures are private by default
+data/costs/book_costs.csv
+data/costs/cost_by_year.csv
+data/costs/cost_pct_of_price.csv
+data/costs/other_costs.csv
