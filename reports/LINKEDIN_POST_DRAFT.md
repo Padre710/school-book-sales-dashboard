@@ -15,8 +15,8 @@ When the first year was done fully by hand, the owner had to check 71% of the in
 Then a last review found three errors the rules had missed, including a batch of invoices counted in two years. A fix is not finished until a different check says so.
 
 What the data says:
-- September and August bring 55% of revenue: the new school year.
-- Invoices fell from 122 to 34 a year, but the average invoice grew from ₦13,272 to ₦46,722.
+- September and August bring 56% of revenue: the new school year.
+- Invoices fell from 122 to 34 a year, but the average invoice grew from ₦13,231 to ₦46,722.
 - One typical title went from ₦220 to ₦620 a copy: prices did much of the growth.
 - 2020, the COVID year, fell 56% and then rebounded 137%.
 - Schools are 76% of revenue; no single customer carries the business.

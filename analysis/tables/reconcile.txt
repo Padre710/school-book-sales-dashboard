@@ -1,15 +1,15 @@
 RECONCILE (all must be OK)
-OK    invoices file vs yearly table: 11,738,257 vs 11,738,257
-OK    invoices file vs monthly table: 11,738,257 vs 11,738,257
-OK    invoices file vs month-of-year table: 11,738,257 vs 11,738,257
-OK    invoices file vs customers table: 11,738,257 vs 11,738,257
-OK    invoices file vs customer-by-year table: 11,738,257 vs 11,738,257
-OK    net revenue of the lines vs invoices that have priced lines: 11,738,257 vs 11,738,257
-OK    copies in lines file vs books in invoices file: 35,268 vs 35,268
-OK    titles table net revenue vs lines net revenue: 11,738,257 vs 11,738,257
-OK    books: copies of the titles table vs invoices file: 35,268 vs 35,268
+OK    invoices file vs yearly table: 11,672,962 vs 11,672,962
+OK    invoices file vs monthly table: 11,672,962 vs 11,672,962
+OK    invoices file vs month-of-year table: 11,672,962 vs 11,672,962
+OK    invoices file vs customers table: 11,672,962 vs 11,672,962
+OK    invoices file vs customer-by-year table: 11,672,962 vs 11,672,962
+OK    net revenue of the lines vs invoices that have priced lines: 11,672,962 vs 11,672,962
+OK    copies in lines file vs books in invoices file: 35,259 vs 35,259
+OK    titles table net revenue vs lines net revenue: 11,672,962 vs 11,672,962
+OK    books: copies of the titles table vs invoices file: 35,259 vs 35,259
 
-NOTE: 16 invoices have lines that do not add up to the paper's gross (difference 39,847 naira): the owner's own arithmetic or a missing line; listed in KNOWN_lines_not_equal_gross.csv and in the final review. Not an error of this build.
+NOTE: 8 invoices have lines that do not add up to the paper's gross (difference -6,648 naira): the owner's own arithmetic or a missing line; listed in KNOWN_lines_not_equal_gross.csv and in the final review. Not an error of this build.
 
 Cost file: none (no cost file yet); revenue with a cost: 0.0%
 Warnings: none

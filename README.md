@@ -4,18 +4,18 @@ A children's book publisher in Lagos kept its sales in handwritten invoice books
 
 | | |
 |---|---|
-| Invoices | 606 (2,497 book lines, 35,268 copies) |
+| Invoices | 606 (2,500 book lines, 35,259 copies) |
 | Revenue (what was paid) | about ₦11.7 million, nominal naira |
 | Customers | 337 (schools, bookshops, individuals) after merging spelling variants |
 | Period | 2019-01-15 to 2026-09-30 |
 | Checked by the owner | 9.7% of the invoices (47 of 487 for 2019-2026 without 2021), against 71% when 2021 was done entirely by hand |
 
 ## Key findings
-- **Two months do most of the work.** September is 33% and August 22% of all revenue: the new school year.
-- **Fewer, bigger orders.** Invoices fell from 122 (2019) to 34 (2026) while the average invoice grew from ₦13,272 to ₦46,722.
+- **Two months do most of the work.** September is 33% and August 23% of all revenue: the new school year.
+- **Fewer, bigger orders.** Invoices fell from 122 (2019) to 34 (2026) while the average invoice grew from ₦13,231 to ₦46,722.
 - **Prices did much of the growth.** One typical title went from ₦220 to ₦620 a copy (about 2.8 times); revenue grew faster than copies sold.
 - **2020 was the COVID year:** schools closed and revenue fell 56%, then rebounded 137% in 2021.
-- **A spread-out customer base.** The ten biggest customers are 27% of revenue; schools bring 76%.
+- **A spread-out customer base.** The ten biggest customers are 26% of revenue; schools bring 76%.
 - Revenue is not profit: the cost of the books is not in this dataset (the dashboard has a Profit page that fills in when a cost file is added, see `data/costs/`).
 
 ![Overview](reports/figures/dashboard_overview.png)
